@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
+import { ensureAchievementDefinitionsSeeded } from "@/lib/achievements/definitions";
+import { recomputeAchievementsProgress } from "@/lib/achievements/engine";
 import Game from "@/models/Game";
 import type { UpdateGameInput } from "@/types/game";
 
@@ -16,6 +18,9 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     if (!game) {
       return NextResponse.json({ error: "Game not found" }, { status: 404 });
     }
+
+    await ensureAchievementDefinitionsSeeded();
+    await recomputeAchievementsProgress();
 
     return NextResponse.json(game);
   } catch (error) {
@@ -61,6 +66,9 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     if (!game) {
       return NextResponse.json({ error: "Game not found" }, { status: 404 });
     }
+
+    await ensureAchievementDefinitionsSeeded();
+    await recomputeAchievementsProgress();
 
     return NextResponse.json({ message: "Game deleted successfully" });
   } catch (error) {

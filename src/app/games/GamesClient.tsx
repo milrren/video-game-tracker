@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useCallback } from "react";
 import type { IGame, CreateGameInput, UpdateGameInput } from "@/types/game";
 import AddGameForm from "./AddGameForm";
@@ -87,7 +88,12 @@ export default function GamesClient({ initialGames }: GamesClientProps) {
           <h1 style={styles.heading}>🎮 Video Game Tracker</h1>
           <p style={styles.subheading}>Track your gaming journey</p>
         </div>
-        <AddGameForm onAdd={handleAdd} />
+        <div style={styles.headerActions}>
+          <Link href="/achievements" style={styles.achievementsLink}>
+            View achievements
+          </Link>
+          <AddGameForm onAdd={handleAdd} />
+        </div>
       </header>
 
       {error && <div style={styles.errorBanner}>{error}</div>}
@@ -167,6 +173,21 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: "32px",
     flexWrap: "wrap" as const,
     gap: "16px",
+  },
+  headerActions: {
+    display: "flex",
+    gap: "10px",
+    alignItems: "center",
+    flexWrap: "wrap" as const,
+    justifyContent: "flex-end",
+  },
+  achievementsLink: {
+    color: "#a78bfa",
+    border: "1px solid #a78bfa55",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    fontSize: "14px",
+    fontWeight: 600,
   },
   heading: {
     fontSize: "28px",

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
+import { ensureAchievementDefinitionsSeeded } from "@/lib/achievements/definitions";
+import { recomputeAchievementsProgress } from "@/lib/achievements/engine";
 import Game from "@/models/Game";
 import type { CreateGameInput } from "@/types/game";
 
@@ -23,6 +25,8 @@ export async function POST(request: NextRequest) {
     const body: CreateGameInput = await request.json();
 
     const game = await Game.create(body);
+    await ensureAchievementDefinitionsSeeded();
+    await recomputeAchievementsProgress();
     return NextResponse.json(game, { status: 201 });
   } catch (error) {
     console.error("POST /api/games error:", error);
