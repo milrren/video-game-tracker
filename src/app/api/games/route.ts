@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
 import { ensureAchievementDefinitionsSeeded } from "@/lib/achievements/definitions";
 import { recomputeAchievementsProgress } from "@/lib/achievements/engine";
-import Game from "@/models/Game";
+import { getGamesCollection } from "@/lib/db/collections";
+import { buildGameInsert, toGameResponse } from "@/lib/games";
 import type { CreateGameInput } from "@/types/game";
 
 export async function GET() {
   try {
-    await connectToDatabase();
-    const games = await Game.find().sort({ createdAt: -1 }).lean();
-    return NextResponse.json(games);
+    const gamesCollection = await getGamesCollection();
+    const games = await gamesCollection.find({}).sort({ createdAt: -1 }).toArray();
+    return NextResponse.json(games.map(toGameResponse));
   } catch (error) {
     console.error("GET /api/games error:", error);
     return NextResponse.json(
@@ -21,13 +21,22 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await connectToDatabase();
     const body: CreateGameInput = await request.json();
+    const parsed = buildGameInsert(body);
+    if ("error" in parsed) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
 
-    const game = await Game.create(body);
+    const gamesCollection = await getGamesCollection();
+    const insertResult = await gamesCollection.insertOne(parsed.doc);
+    const game = await gamesCollection.findOne({ _id: insertResult.insertedId });
+    if (!game) {
+      return NextResponse.json({ error: "Failed to create game" }, { status: 500 });
+    }
+
     await ensureAchievementDefinitionsSeeded();
     await recomputeAchievementsProgress();
-    return NextResponse.json(game, { status: 201 });
+    return NextResponse.json(toGameResponse(game), { status: 201 });
   } catch (error) {
     console.error("POST /api/games error:", error);
     return NextResponse.json(

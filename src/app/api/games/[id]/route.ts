@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 import { ensureAchievementDefinitionsSeeded } from "@/lib/achievements/definitions";
 import { recomputeAchievementsProgress } from "@/lib/achievements/engine";
-import Game from "@/models/Game";
+import { getGamesCollection } from "@/lib/db/collections";
+import { buildGameUpdate, toGameResponse } from "@/lib/games";
 import type { UpdateGameInput } from "@/types/game";
 
 interface RouteParams {
@@ -11,9 +12,13 @@ interface RouteParams {
 
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
-    await connectToDatabase();
     const { id } = await params;
-    const game = await Game.findById(id).lean();
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json({ error: "Invalid game id" }, { status: 400 });
+    }
+
+    const gamesCollection = await getGamesCollection();
+    const game = await gamesCollection.findOne({ _id: new ObjectId(id) });
 
     if (!game) {
       return NextResponse.json({ error: "Game not found" }, { status: 404 });
@@ -22,7 +27,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     await ensureAchievementDefinitionsSeeded();
     await recomputeAchievementsProgress();
 
-    return NextResponse.json(game);
+    return NextResponse.json(toGameResponse(game));
   } catch (error) {
     console.error("GET /api/games/[id] error:", error);
     return NextResponse.json(
@@ -34,20 +39,37 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    await connectToDatabase();
     const { id } = await params;
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json({ error: "Invalid game id" }, { status: 400 });
+    }
+
     const body: UpdateGameInput = await request.json();
+    const parsed = buildGameUpdate(body);
+    if ("error" in parsed) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
 
-    const game = await Game.findByIdAndUpdate(id, body, {
-      new: true,
-      runValidators: true,
-    }).lean();
+    const gamesCollection = await getGamesCollection();
+    const update = {
+      ...(Object.keys(parsed.set).length > 0 ? { $set: parsed.set } : {}),
+      ...(Object.keys(parsed.unset).length > 0 ? { $unset: parsed.unset } : {}),
+    };
 
-    if (!game) {
+    const result = await gamesCollection.findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      update,
+      { returnDocument: "after" }
+    );
+
+    if (!result) {
       return NextResponse.json({ error: "Game not found" }, { status: 404 });
     }
 
-    return NextResponse.json(game);
+    await ensureAchievementDefinitionsSeeded();
+    await recomputeAchievementsProgress();
+
+    return NextResponse.json(toGameResponse(result));
   } catch (error) {
     console.error("PUT /api/games/[id] error:", error);
     return NextResponse.json(
@@ -59,11 +81,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   try {
-    await connectToDatabase();
     const { id } = await params;
-    const game = await Game.findByIdAndDelete(id).lean();
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json({ error: "Invalid game id" }, { status: 400 });
+    }
 
-    if (!game) {
+    const gamesCollection = await getGamesCollection();
+    const result = await gamesCollection.findOneAndDelete({ _id: new ObjectId(id) });
+
+    if (!result) {
       return NextResponse.json({ error: "Game not found" }, { status: 404 });
     }
 

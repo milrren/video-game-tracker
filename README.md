@@ -14,7 +14,7 @@ A full-stack Next.js app with TypeScript and server-side MongoDB integration to 
 
 - [Next.js 16](https://nextjs.org/) (App Router)
 - [TypeScript](https://www.typescriptlang.org/)
-- [Mongoose 9](https://mongoosejs.com/) / [MongoDB](https://www.mongodb.com/)
+- [MongoDB Node.js Driver](https://www.mongodb.com/docs/drivers/node/current/) / [MongoDB](https://www.mongodb.com/)
 
 ## Getting Started
 

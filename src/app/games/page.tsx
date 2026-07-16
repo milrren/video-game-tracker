@@ -1,24 +1,16 @@
 export const dynamic = "force-dynamic";
 
 import { connectToDatabase } from "@/lib/mongodb";
-import Game from "@/models/Game";
+import { getGamesCollection } from "@/lib/db/collections";
+import { toGameResponse } from "@/lib/games";
 import type { IGame } from "@/types/game";
 import GamesClient from "./GamesClient";
 
 async function getGames(): Promise<IGame[]> {
   await connectToDatabase();
-  const games = await Game.find().sort({ createdAt: -1 }).lean();
-  return games.map((g) => ({
-    _id: g._id.toString(),
-    title: g.title,
-    platform: g.platform,
-    genre: g.genre,
-    status: g.status,
-    rating: g.rating,
-    notes: g.notes,
-    createdAt: g.createdAt.toISOString(),
-    updatedAt: g.updatedAt.toISOString(),
-  }));
+  const gamesCollection = await getGamesCollection();
+  const games = await gamesCollection.find({}).sort({ createdAt: -1 }).toArray();
+  return games.map(toGameResponse);
 }
 
 export default async function GamesPage() {

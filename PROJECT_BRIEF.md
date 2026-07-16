@@ -9,7 +9,7 @@ Evoluir de um tracker basico para uma experiencia mais engajadora com metas e pr
 ## 3) Stack
 - Next.js (App Router)
 - TypeScript
-- MongoDB + Mongoose
+- MongoDB (driver nativo)
 
 ## 4) Funcionalidades Ja Disponiveis
 - CRUD de jogos
