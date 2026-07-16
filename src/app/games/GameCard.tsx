@@ -4,10 +4,10 @@ import { useState } from "react";
 import type { IGame, GameStatus, UpdateGameInput } from "@/types/game";
 
 const STATUS_OPTIONS: { value: GameStatus; label: string; color: string }[] = [
-  { value: "backlog", label: "Backlog", color: "#64748b" },
-  { value: "playing", label: "Playing", color: "#2563eb" },
-  { value: "completed", label: "Completed", color: "#16a34a" },
-  { value: "dropped", label: "Dropped", color: "#dc2626" },
+  { value: "backlog", label: "Backlog", color: "#7a746c" },
+  { value: "playing", label: "Playing", color: "#355c8c" },
+  { value: "completed", label: "Completed", color: "#147a45" },
+  { value: "dropped", label: "Dropped", color: "#ab2f45" },
 ];
 
 interface GameCardProps {
@@ -47,37 +47,39 @@ export default function GameCard({ game, onDelete, onUpdate }: GameCardProps) {
   };
 
   return (
-    <div style={styles.card}>
-      <div style={styles.header}>
+    <article className="game-card">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          gap: "0.7rem",
+        }}
+      >
         <div>
-          <h3 style={styles.title}>{game.title}</h3>
-          <p style={styles.platform}>{game.platform}</p>
+          <h3 className="card-title">{game.title}</h3>
+          <p className="card-subtitle">{game.platform}</p>
         </div>
         <span
-          style={{
-            ...styles.statusBadge,
-            backgroundColor: statusInfo.color + "33",
-            color: statusInfo.color,
-            borderColor: statusInfo.color + "66",
-          }}
+          className="badge"
+          style={{ backgroundColor: statusInfo.color + "22", color: statusInfo.color }}
         >
           {statusInfo.label}
         </span>
       </div>
 
-      <div style={styles.meta}>
-        {game.genre && <span style={styles.metaItem}>🎮 {game.genre}</span>}
-        {game.rating && (
-          <span style={styles.metaItem}>⭐ {game.rating}/10</span>
-        )}
+      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+        {game.genre && <span className="badge">Genre: {game.genre}</span>}
+        {game.rating && <span className="badge">Rating: {game.rating}/10</span>}
       </div>
 
-      {game.notes && <p style={styles.notes}>{game.notes}</p>}
+      {game.notes && <p className="card-text">{game.notes}</p>}
 
       {editing ? (
-        <div style={styles.editRow}>
+        <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap" }}>
           <select
-            style={styles.editSelect}
+            className="field-select"
+            style={{ maxWidth: "140px" }}
             value={editStatus}
             onChange={(e) => setEditStatus(e.target.value as GameStatus)}
           >
@@ -88,7 +90,8 @@ export default function GameCard({ game, onDelete, onUpdate }: GameCardProps) {
             ))}
           </select>
           <input
-            style={styles.editInput}
+            className="field"
+            style={{ maxWidth: "92px" }}
             type="number"
             min={1}
             max={10}
@@ -100,147 +103,23 @@ export default function GameCard({ game, onDelete, onUpdate }: GameCardProps) {
             }
             placeholder="Rating"
           />
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            style={styles.saveButton}
-          >
+          <button onClick={handleSave} disabled={saving} className="btn btn-primary">
             {saving ? "Saving..." : "Save"}
           </button>
-          <button onClick={() => setEditing(false)} style={styles.cancelBtn}>
+          <button onClick={() => setEditing(false)} className="btn btn-ghost">
             Cancel
           </button>
         </div>
       ) : (
-        <div style={styles.actions}>
-          <button onClick={() => setEditing(true)} style={styles.editButton}>
+        <div style={{ display: "flex", gap: "0.45rem", marginTop: "0.1rem" }}>
+          <button onClick={() => setEditing(true)} className="btn btn-secondary">
             Edit
           </button>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            style={styles.deleteButton}
-          >
+          <button onClick={handleDelete} disabled={deleting} className="btn btn-ghost">
             {deleting ? "Deleting..." : "Delete"}
           </button>
         </div>
       )}
-    </div>
+    </article>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  card: {
-    backgroundColor: "#1e1e2e",
-    border: "1px solid #2e2e4e",
-    borderRadius: "10px",
-    padding: "16px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: "12px",
-  },
-  title: {
-    fontSize: "16px",
-    fontWeight: 700,
-    color: "#e2e8f0",
-  },
-  platform: {
-    fontSize: "13px",
-    color: "#64748b",
-    marginTop: "2px",
-  },
-  statusBadge: {
-    fontSize: "12px",
-    fontWeight: 600,
-    padding: "3px 10px",
-    borderRadius: "12px",
-    border: "1px solid",
-    whiteSpace: "nowrap" as const,
-    flexShrink: 0,
-  },
-  meta: {
-    display: "flex",
-    gap: "12px",
-    flexWrap: "wrap" as const,
-  },
-  metaItem: {
-    fontSize: "13px",
-    color: "#94a3b8",
-  },
-  notes: {
-    fontSize: "13px",
-    color: "#64748b",
-    fontStyle: "italic",
-  },
-  actions: {
-    display: "flex",
-    gap: "8px",
-    marginTop: "4px",
-  },
-  editRow: {
-    display: "flex",
-    gap: "8px",
-    flexWrap: "wrap" as const,
-    alignItems: "center",
-  },
-  editButton: {
-    backgroundColor: "transparent",
-    color: "#a78bfa",
-    border: "1px solid #a78bfa55",
-    borderRadius: "6px",
-    padding: "5px 12px",
-    fontSize: "13px",
-    cursor: "pointer",
-  },
-  deleteButton: {
-    backgroundColor: "transparent",
-    color: "#f87171",
-    border: "1px solid #f8717155",
-    borderRadius: "6px",
-    padding: "5px 12px",
-    fontSize: "13px",
-    cursor: "pointer",
-  },
-  saveButton: {
-    backgroundColor: "#6d28d9",
-    color: "#fff",
-    border: "none",
-    borderRadius: "6px",
-    padding: "5px 12px",
-    fontSize: "13px",
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  cancelBtn: {
-    backgroundColor: "transparent",
-    color: "#94a3b8",
-    border: "1px solid #2e2e4e",
-    borderRadius: "6px",
-    padding: "5px 12px",
-    fontSize: "13px",
-    cursor: "pointer",
-  },
-  editSelect: {
-    backgroundColor: "#0f0f1a",
-    border: "1px solid #2e2e4e",
-    borderRadius: "6px",
-    padding: "5px 10px",
-    color: "#e2e8f0",
-    fontSize: "13px",
-  },
-  editInput: {
-    backgroundColor: "#0f0f1a",
-    border: "1px solid #2e2e4e",
-    borderRadius: "6px",
-    padding: "5px 10px",
-    color: "#e2e8f0",
-    fontSize: "13px",
-    width: "80px",
-  },
-};

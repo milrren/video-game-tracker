@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import { Db, MongoClient } from "mongodb";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -8,32 +8,42 @@ if (!MONGODB_URI) {
   );
 }
 
-interface MongooseCache {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
+interface MongoCache {
+  client: MongoClient | null;
+  db: Db | null;
+  promise: Promise<Db> | null;
 }
 
-// Use a module-level cache to reuse the connection across hot reloads in development
-const globalWithMongoose = global as typeof global & {
-  mongoose?: MongooseCache;
+const globalWithMongo = global as typeof global & {
+  mongo?: MongoCache;
 };
 
-const cached: MongooseCache = globalWithMongoose.mongoose ?? {
-  conn: null,
+const cached: MongoCache = globalWithMongo.mongo ?? {
+  client: null,
+  db: null,
   promise: null,
 };
 
-globalWithMongoose.mongoose = cached;
+globalWithMongo.mongo = cached;
 
-export async function connectToDatabase(): Promise<typeof mongoose> {
-  if (cached.conn) {
-    return cached.conn;
+function resolveDbName(uri: string) {
+  const pathname = new URL(uri).pathname.replace(/^\//, "");
+  return pathname || "video-game-tracker";
+}
+
+export async function connectToDatabase(): Promise<Db> {
+  if (cached.db) {
+    return cached.db;
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI as string).then((m) => m);
+    const client = new MongoClient(MONGODB_URI as string);
+    cached.promise = client.connect().then((connectedClient) => {
+      cached.client = connectedClient;
+      return connectedClient.db(resolveDbName(MONGODB_URI as string));
+    });
   }
 
-  cached.conn = await cached.promise;
-  return cached.conn;
+  cached.db = await cached.promise;
+  return cached.db;
 }

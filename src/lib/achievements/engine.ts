@@ -1,8 +1,9 @@
-import AchievementDefinition, {
-  IAchievementDefinitionDocument,
-} from "@/models/AchievementDefinition";
-import Game, { IGameDocument } from "@/models/Game";
-import UserAchievementProgress from "@/models/UserAchievementProgress";
+import {
+  type AchievementDefinitionDocument,
+  getAchievementDefinitionsCollection,
+  getGamesCollection,
+  getUserAchievementProgressCollection,
+} from "@/lib/db/collections";
 import type {
   AchievementDefinition as AchievementDefinitionType,
   AchievementProgressResponse,
@@ -16,7 +17,7 @@ import {
 export const DEFAULT_USER_ID = "local-user";
 
 function toTypedDefinition(
-  definition: IAchievementDefinitionDocument
+  definition: AchievementDefinitionDocument
 ): AchievementDefinitionType {
   return {
     code: definition.code,
@@ -31,57 +32,65 @@ function toTypedDefinition(
 
 export async function recomputeAchievementsProgress(userId = DEFAULT_USER_ID) {
   const startedAt = Date.now();
+  const definitionsCollection = await getAchievementDefinitionsCollection();
+  const gamesCollection = await getGamesCollection();
+  const progressCollection = await getUserAchievementProgressCollection();
+
   const [definitions, games] = await Promise.all([
-    AchievementDefinition.find().lean(),
-    Game.find().lean(),
+    definitionsCollection.find({}).toArray(),
+    gamesCollection
+      .find({}, { projection: { title: 1, status: 1, rating: 1, notes: 1 } })
+      .toArray(),
   ]);
 
   const calculatedAt = new Date();
-  const upserts = definitions.map((definitionDoc) => {
-    const definition = toTypedDefinition(
-      definitionDoc as unknown as IAchievementDefinitionDocument
-    );
+  const updates = definitions.map(async (definitionDoc) => {
+    const definition = toTypedDefinition(definitionDoc);
     const evaluated = evaluateAchievement(
       definition,
       games as unknown as GameForAchievementRule[]
     );
 
-    return UserAchievementProgress.findOne({
+    const existing = await progressCollection.findOne({
       userId,
       achievementCode: definition.code,
       achievementVersion: definition.version,
-    }).then((existing) => {
-      const completedAt = evaluated.isCompleted
-        ? existing?.completedAt ?? calculatedAt
-        : null;
+    });
 
-      return UserAchievementProgress.findOneAndUpdate(
-        {
+    const completedAt = evaluated.isCompleted
+      ? existing?.completedAt ?? calculatedAt
+      : null;
+
+    await progressCollection.updateOne(
+      {
+        userId,
+        achievementCode: definition.code,
+        achievementVersion: definition.version,
+      },
+      {
+        $set: {
+          current: evaluated.current,
+          target: evaluated.target,
+          progressPercent: evaluated.progressPercent,
+          isCompleted: evaluated.isCompleted,
+          completedAt,
+          lastCalculatedAt: calculatedAt,
+          updatedAt: calculatedAt,
+        },
+        $setOnInsert: {
           userId,
           achievementCode: definition.code,
           achievementVersion: definition.version,
+          createdAt: calculatedAt,
         },
-        {
-          $set: {
-            current: evaluated.current,
-            target: evaluated.target,
-            progressPercent: evaluated.progressPercent,
-            isCompleted: evaluated.isCompleted,
-            completedAt,
-            lastCalculatedAt: calculatedAt,
-          },
-          $setOnInsert: {
-            userId,
-            achievementCode: definition.code,
-            achievementVersion: definition.version,
-          },
-        },
-        { upsert: true, new: true }
-      ).lean();
-    });
+      },
+      { upsert: true }
+    );
+
+    return { isCompleted: evaluated.isCompleted };
   });
 
-  const updatedRows = await Promise.all(upserts);
+  const updatedRows = await Promise.all(updates);
 
   const completedCount = updatedRows.filter((row) => row?.isCompleted).length;
   const durationMs = Date.now() - startedAt;
@@ -99,13 +108,16 @@ export async function recomputeAchievementsProgress(userId = DEFAULT_USER_ID) {
 export async function getAchievementsForUser(
   userId = DEFAULT_USER_ID
 ): Promise<AchievementProgressResponse[]> {
+  const definitionsCollection = await getAchievementDefinitionsCollection();
+  const progressCollection = await getUserAchievementProgressCollection();
+
   const [definitions, progressRows] = await Promise.all([
-    AchievementDefinition.find().lean(),
-    UserAchievementProgress.find({ userId }).lean(),
+    definitionsCollection.find({}).toArray(),
+    progressCollection.find({ userId }).toArray(),
   ]);
 
   const typedDefinitions = definitions.map((definitionDoc) =>
-    toTypedDefinition(definitionDoc as unknown as IAchievementDefinitionDocument)
+    toTypedDefinition(definitionDoc)
   );
 
   return mergeAchievementProgress(typedDefinitions, progressRows);

@@ -78,21 +78,21 @@ export default function AddGameForm({ onAdd }: AddGameFormProps) {
 
   if (!isOpen) {
     return (
-      <button onClick={() => setIsOpen(true)} style={styles.addButton}>
+      <button onClick={() => setIsOpen(true)} className="btn btn-primary">
         + Add Game
       </button>
     );
   }
 
   return (
-    <div style={styles.formCard}>
-      <h2 style={styles.formTitle}>Add New Game</h2>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <div style={styles.formRow}>
-          <div style={styles.fieldGroup}>
-            <label style={styles.label}>Title *</label>
+    <section className="section-card form-wrap">
+      <h2 className="card-title">Add New Game</h2>
+      <form onSubmit={handleSubmit} style={{ marginTop: "0.85rem" }}>
+        <div className="form-grid">
+          <div className="field-group">
+            <label className="field-label">Title *</label>
             <input
-              style={styles.input}
+              className="field"
               type="text"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -100,10 +100,10 @@ export default function AddGameForm({ onAdd }: AddGameFormProps) {
               placeholder="e.g. The Legend of Zelda"
             />
           </div>
-          <div style={styles.fieldGroup}>
-            <label style={styles.label}>Platform *</label>
+          <div className="field-group">
+            <label className="field-label">Platform *</label>
             <select
-              style={styles.select}
+              className="field-select"
               value={form.platform}
               onChange={(e) => setForm({ ...form, platform: e.target.value })}
               required
@@ -116,12 +116,10 @@ export default function AddGameForm({ onAdd }: AddGameFormProps) {
               ))}
             </select>
           </div>
-        </div>
-        <div style={styles.formRow}>
-          <div style={styles.fieldGroup}>
-            <label style={styles.label}>Genre</label>
+          <div className="field-group">
+            <label className="field-label">Genre</label>
             <select
-              style={styles.select}
+              className="field-select"
               value={form.genre}
               onChange={(e) => setForm({ ...form, genre: e.target.value })}
             >
@@ -133,10 +131,10 @@ export default function AddGameForm({ onAdd }: AddGameFormProps) {
               ))}
             </select>
           </div>
-          <div style={styles.fieldGroup}>
-            <label style={styles.label}>Status *</label>
+          <div className="field-group">
+            <label className="field-label">Status *</label>
             <select
-              style={styles.select}
+              className="field-select"
               value={form.status}
               onChange={(e) =>
                 setForm({ ...form, status: e.target.value as GameStatus })
@@ -150,12 +148,10 @@ export default function AddGameForm({ onAdd }: AddGameFormProps) {
               ))}
             </select>
           </div>
-        </div>
-        <div style={styles.formRow}>
-          <div style={styles.fieldGroup}>
-            <label style={styles.label}>Rating (1–10)</label>
+          <div className="field-group">
+            <label className="field-label">Rating (1-10)</label>
             <input
-              style={styles.input}
+              className="field"
               type="number"
               min={1}
               max={10}
@@ -169,130 +165,30 @@ export default function AddGameForm({ onAdd }: AddGameFormProps) {
               placeholder="Optional"
             />
           </div>
+          <div className="field-group">
+            <label className="field-label">Notes</label>
+            <textarea
+              className="field-textarea"
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              placeholder="Optional notes..."
+            />
+          </div>
         </div>
-        <div style={styles.fieldGroup}>
-          <label style={styles.label}>Notes</label>
-          <textarea
-            style={styles.textarea}
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            placeholder="Optional notes..."
-            rows={3}
-          />
-        </div>
-        <div style={styles.formActions}>
+
+        <div className="form-actions" style={{ marginTop: "0.85rem" }}>
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            style={styles.cancelButton}
+            className="btn btn-ghost"
           >
             Cancel
           </button>
-          <button type="submit" disabled={loading} style={styles.submitButton}>
+          <button type="submit" disabled={loading} className="btn btn-primary">
             {loading ? "Adding..." : "Add Game"}
           </button>
         </div>
       </form>
-    </div>
+    </section>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  addButton: {
-    backgroundColor: "#6d28d9",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-    padding: "10px 20px",
-    fontSize: "15px",
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  formCard: {
-    backgroundColor: "#1e1e2e",
-    borderRadius: "12px",
-    padding: "24px",
-    marginBottom: "24px",
-    border: "1px solid #2e2e4e",
-  },
-  formTitle: {
-    fontSize: "18px",
-    fontWeight: 700,
-    marginBottom: "20px",
-    color: "#a78bfa",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-  },
-  formRow: {
-    display: "flex",
-    gap: "16px",
-    flexWrap: "wrap" as const,
-  },
-  fieldGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-    flex: 1,
-    minWidth: "200px",
-  },
-  label: {
-    fontSize: "13px",
-    fontWeight: 500,
-    color: "#94a3b8",
-  },
-  input: {
-    backgroundColor: "#0f0f1a",
-    border: "1px solid #2e2e4e",
-    borderRadius: "6px",
-    padding: "8px 12px",
-    color: "#e2e8f0",
-    fontSize: "14px",
-    outline: "none",
-  },
-  select: {
-    backgroundColor: "#0f0f1a",
-    border: "1px solid #2e2e4e",
-    borderRadius: "6px",
-    padding: "8px 12px",
-    color: "#e2e8f0",
-    fontSize: "14px",
-    outline: "none",
-  },
-  textarea: {
-    backgroundColor: "#0f0f1a",
-    border: "1px solid #2e2e4e",
-    borderRadius: "6px",
-    padding: "8px 12px",
-    color: "#e2e8f0",
-    fontSize: "14px",
-    outline: "none",
-    resize: "vertical" as const,
-  },
-  formActions: {
-    display: "flex",
-    gap: "12px",
-    justifyContent: "flex-end",
-  },
-  cancelButton: {
-    backgroundColor: "transparent",
-    color: "#94a3b8",
-    border: "1px solid #2e2e4e",
-    borderRadius: "6px",
-    padding: "8px 16px",
-    fontSize: "14px",
-    cursor: "pointer",
-  },
-  submitButton: {
-    backgroundColor: "#6d28d9",
-    color: "#fff",
-    border: "none",
-    borderRadius: "6px",
-    padding: "8px 16px",
-    fontSize: "14px",
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-};

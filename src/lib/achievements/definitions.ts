@@ -1,4 +1,4 @@
-import AchievementDefinition from "@/models/AchievementDefinition";
+import { getAchievementDefinitionsCollection } from "@/lib/db/collections";
 import type { AchievementDefinition as AchievementDefinitionType } from "@/types/achievement";
 
 export const DEFAULT_ACHIEVEMENT_DEFINITIONS: AchievementDefinitionType[] = [
@@ -70,9 +70,13 @@ export const DEFAULT_ACHIEVEMENT_DEFINITIONS: AchievementDefinitionType[] = [
 ];
 
 export async function ensureAchievementDefinitionsSeeded() {
+  const collection = await getAchievementDefinitionsCollection();
+  await collection.createIndex({ code: 1, version: 1 }, { unique: true });
+
+  const now = new Date();
   await Promise.all(
     DEFAULT_ACHIEVEMENT_DEFINITIONS.map((definition) =>
-      AchievementDefinition.findOneAndUpdate(
+      collection.updateOne(
         { code: definition.code, version: definition.version },
         {
           $setOnInsert: {
@@ -83,11 +87,12 @@ export async function ensureAchievementDefinitionsSeeded() {
             category: definition.category,
             ruleType: definition.ruleType,
             rulePayload: definition.rulePayload,
+            createdAt: now,
+            updatedAt: now,
           },
         },
         {
           upsert: true,
-          new: true,
         }
       )
     )
