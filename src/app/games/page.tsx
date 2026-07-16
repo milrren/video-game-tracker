@@ -33,31 +33,16 @@ export default async function GamesPage() {
 
   if (dbError) {
     return (
-      <div
-        style={{
-          maxWidth: "1100px",
-          margin: "0 auto",
-          padding: "32px 20px",
-        }}
-      >
-        <h1
-          style={{ fontSize: "28px", fontWeight: 800, marginBottom: "16px" }}
-        >
-          🎮 Video Game Tracker
-        </h1>
-        <div
-          style={{
-            backgroundColor: "#dc262633",
-            border: "1px solid #dc262666",
-            color: "#f87171",
-            borderRadius: "8px",
-            padding: "16px",
-          }}
-        >
+      <div className="page-shell">
+        <section className="hero">
+          <p className="hero-jp">接続エラー</p>
+          <h1 className="hero-title">Database unavailable</h1>
+          <p className="hero-subtitle">
           <strong>Database connection error.</strong> Please ensure{" "}
           <code>MONGODB_URI</code> is set in your <code>.env.local</code> file
           and your MongoDB instance is running.
-        </div>
+          </p>
+        </section>
       </div>
     );
   }

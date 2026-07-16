@@ -82,56 +82,55 @@ export default function GamesClient({ initialGames }: GamesClientProps) {
   };
 
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
-        <div>
-          <h1 style={styles.heading}>🎮 Video Game Tracker</h1>
-          <p style={styles.subheading}>Track your gaming journey</p>
-        </div>
-        <div style={styles.headerActions}>
-          <Link href="/achievements" style={styles.achievementsLink}>
+    <div className="page-shell">
+      <section className="hero">
+        <p className="hero-jp">遊びの記録</p>
+        <h1 className="hero-title">Your city-pop backlog in motion</h1>
+        <p className="hero-subtitle">
+          Capture what you play, what you finished, and what is next. Keep the
+          mood bold while your game data stays simple.
+        </p>
+        <div className="cta-row">
+          <Link href="/achievements" className="btn btn-secondary">
             View achievements
           </Link>
           <AddGameForm onAdd={handleAdd} />
         </div>
-      </header>
+      </section>
 
-      {error && <div style={styles.errorBanner}>{error}</div>}
+      {error && <div className="error-banner">{error}</div>}
 
-      <div style={styles.statsRow}>
-        <div style={styles.statCard}>
-          <span style={styles.statNumber}>{stats.total}</span>
-          <span style={styles.statLabel}>Total</span>
-        </div>
-        <div style={styles.statCard}>
-          <span style={{ ...styles.statNumber, color: "#2563eb" }}>
+      <div className="stats-grid">
+        <article className="stat">
+          <p className="stat-number">{stats.total}</p>
+          <p className="stat-label">Total</p>
+        </article>
+        <article className="stat">
+          <p className="stat-number" style={{ color: "var(--tokyo-blue)" }}>
             {stats.playing}
-          </span>
-          <span style={styles.statLabel}>Playing</span>
-        </div>
-        <div style={styles.statCard}>
-          <span style={{ ...styles.statNumber, color: "#16a34a" }}>
+          </p>
+          <p className="stat-label">Playing</p>
+        </article>
+        <article className="stat">
+          <p className="stat-number" style={{ color: "var(--success)" }}>
             {stats.completed}
-          </span>
-          <span style={styles.statLabel}>Completed</span>
-        </div>
-        <div style={styles.statCard}>
-          <span style={{ ...styles.statNumber, color: "#64748b" }}>
+          </p>
+          <p className="stat-label">Completed</p>
+        </article>
+        <article className="stat">
+          <p className="stat-number" style={{ color: "var(--warm-gray)" }}>
             {stats.backlog}
-          </span>
-          <span style={styles.statLabel}>Backlog</span>
-        </div>
+          </p>
+          <p className="stat-label">Backlog</p>
+        </article>
       </div>
 
-      <div style={styles.filterRow}>
+      <div className="chip-row">
         {STATUS_FILTERS.map((f) => (
           <button
             key={f.value}
             onClick={() => setStatusFilter(f.value)}
-            style={{
-              ...styles.filterButton,
-              ...(statusFilter === f.value ? styles.filterButtonActive : {}),
-            }}
+            className={`chip ${statusFilter === f.value ? "active" : ""}`}
           >
             {f.label}
           </button>
@@ -139,13 +138,13 @@ export default function GamesClient({ initialGames }: GamesClientProps) {
       </div>
 
       {filtered.length === 0 ? (
-        <div style={styles.empty}>
+        <div className="empty-box">
           {games.length === 0
             ? "No games yet. Add your first game!"
             : `No games with status "${statusFilter}".`}
         </div>
       ) : (
-        <div style={styles.grid}>
+        <div className="cards-grid">
           {filtered.map((game) => (
             <GameCard
               key={game._id}
@@ -156,115 +155,10 @@ export default function GamesClient({ initialGames }: GamesClientProps) {
           ))}
         </div>
       )}
+
+      <p className="page-footer">
+        Keep CRUD simple, keep visuals expressive.
+      </p>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    maxWidth: "1100px",
-    margin: "0 auto",
-    padding: "32px 20px",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: "32px",
-    flexWrap: "wrap" as const,
-    gap: "16px",
-  },
-  headerActions: {
-    display: "flex",
-    gap: "10px",
-    alignItems: "center",
-    flexWrap: "wrap" as const,
-    justifyContent: "flex-end",
-  },
-  achievementsLink: {
-    color: "#a78bfa",
-    border: "1px solid #a78bfa55",
-    borderRadius: "8px",
-    padding: "10px 14px",
-    fontSize: "14px",
-    fontWeight: 600,
-  },
-  heading: {
-    fontSize: "28px",
-    fontWeight: 800,
-    color: "#e2e8f0",
-  },
-  subheading: {
-    fontSize: "14px",
-    color: "#64748b",
-    marginTop: "4px",
-  },
-  errorBanner: {
-    backgroundColor: "#dc262633",
-    border: "1px solid #dc262666",
-    color: "#f87171",
-    borderRadius: "8px",
-    padding: "12px 16px",
-    marginBottom: "20px",
-    fontSize: "14px",
-  },
-  statsRow: {
-    display: "flex",
-    gap: "16px",
-    marginBottom: "24px",
-    flexWrap: "wrap" as const,
-  },
-  statCard: {
-    backgroundColor: "#1e1e2e",
-    border: "1px solid #2e2e4e",
-    borderRadius: "10px",
-    padding: "16px 24px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "4px",
-    minWidth: "80px",
-  },
-  statNumber: {
-    fontSize: "28px",
-    fontWeight: 800,
-    color: "#a78bfa",
-  },
-  statLabel: {
-    fontSize: "12px",
-    color: "#64748b",
-    fontWeight: 500,
-  },
-  filterRow: {
-    display: "flex",
-    gap: "8px",
-    marginBottom: "24px",
-    flexWrap: "wrap" as const,
-  },
-  filterButton: {
-    backgroundColor: "transparent",
-    color: "#94a3b8",
-    border: "1px solid #2e2e4e",
-    borderRadius: "20px",
-    padding: "6px 16px",
-    fontSize: "13px",
-    cursor: "pointer",
-    fontWeight: 500,
-  },
-  filterButtonActive: {
-    backgroundColor: "#6d28d9",
-    color: "#fff",
-    borderColor: "#6d28d9",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-    gap: "16px",
-  },
-  empty: {
-    textAlign: "center" as const,
-    color: "#64748b",
-    padding: "48px 0",
-    fontSize: "15px",
-  },
-};
